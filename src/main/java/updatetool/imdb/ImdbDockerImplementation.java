@@ -65,8 +65,6 @@ public class ImdbDockerImplementation extends Implementation {
         String overrideDatabaseLocation = System.getenv("OVERRIDE_DATABASE_LOCATION");
         String executeUpdatesOverPlexSqliteVersion = System.getenv("USE_PLEX_SQLITE_BINARY_FOR_WRITE_ACCESS");
         
-        Logger.info("DUMP OF ENV_VARS: [{}]",System.getenv());
-        
         if(executeUpdatesOverPlexSqliteVersion == null) {
             if(System.getenv("HACK_TO_BYPASS_THIS_ON_ARM_BUILDS") == null) {
                 Logger.error("You have started UpdateTool without the environment variable USE_PLEX_SQLITE_BINARY_FOR_WRITE_ACCESS set to Plex's SQLite binary. Because of database corruption issues in the past it is no longer allowed to run UpdateTool that way.");
@@ -100,6 +98,10 @@ public class ImdbDockerImplementation extends Implementation {
                     );
         } else {
             capabilities.removeAll(Capabilities.getUserFlags());
+        }
+        
+        if(capabilities.contains(Capabilities.DUMP_ENV_VARS_ON_STARTUP)) {
+            Logger.info("DUMP OF ENV_VARS: [{}]",System.getenv());
         }
 
         Objects.requireNonNull(data, "Environment variable PLEX_DATA_DIR is not set");
@@ -261,7 +263,7 @@ public class ImdbDockerImplementation extends Implementation {
                 
                 Logger.info("LIBRARIES => POST LIBRARY FILTERING");
                 libraries.forEach(l -> Logger.info("Will process library {} (ID={}) with agent: {} and {} item(s).", l.name, l.id, l.agent, l.items));
-                metadata = ImdbLibraryMetadata.fetchAll(libraries, new ImdbDatabaseSupport(connection, caches.get("new-agent-mapping"), config), config);
+                metadata = ImdbLibraryMetadata.fetchAll(libraries, new ImdbDatabaseSupport(connection, caches.get("new-agent-mapping"), config), config, this.capabilities);
                 
             } catch(Exception e) {
                 Logger.error(e.getClass().getSimpleName() + " exception encountered...");
@@ -283,8 +285,9 @@ public class ImdbDockerImplementation extends Implementation {
             }
             
             try(var scraper = new ImdbScraper()) {
+                ImdbRatingDatasetFactory.requestSet();
                 var jobs = new ArrayDeque<ImdbJob>();
-                var pipeline = new ImdbPipeline(metadata, service, caches, config, ImdbRatingDatasetFactory.requestSet(), scraper);
+                var pipeline = new ImdbPipeline(metadata, service, caches, config, scraper);
                 var runner = new ImdbJobRunner();
                 for(var lib : libraries) {
                     jobs.add(new ImdbJob(lib));
