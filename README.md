@@ -309,3 +309,5 @@ There is also a GUI to assist users that feel uncomfortable with the CLI way of 
 ![](https://raw.githubusercontent.com/mynttt/UpdateTool/master/img/gui.PNG)
 
 To use the GUI just double click on the jar file. The GUI will automatically download and update the used version of UpdateTool. You are only required to set the path to the Plex Media Server data folder and submit a path to your java executable. If you want to enable TMDB/TVDB resolvement simply tick the boxes and supply the API keys via the text fields. To start and stop the tool use the respective buttons.
+
+If you use an apple device with silicon architecture and the GUI-jar is not starting correctly check the workaround [here](https://github.com/marcherschel/UpdateTool/issues/127).
